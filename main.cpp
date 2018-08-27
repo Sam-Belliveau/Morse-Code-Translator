@@ -48,7 +48,12 @@ int main(int argc, char** argv)
         if(item.letter != ' ')
         {
           std::cout << "  " << item.letter << ": ";
-          item.translation.printMorse();
+          for(std::size_t j = 0; j < LETTER_LENGTH; j++)
+          {
+            if(item.translation[j] == ' ')
+            { break; }
+            printf("%c", item.translation[j]);
+          }
           std::cout << "\n";
         } else {
           std::cout << "  Space: /\n";

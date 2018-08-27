@@ -1,92 +1,5 @@
 #include "MorseCode.h"
 
-/*** Class Stuff ***/
-MorseLetter::MorseLetter(const std::array<char, LETTER_LENGTH>& input)
-{
-  for(std::size_t i = 0; i < LETTER_LENGTH; i++)
-  {
-    if(input[i] == '.')
-    { data[i] = MorseCode::Dot; }
-    else if(input[i] == '-')
-    { data[i] = MorseCode::Dash; }
-    else { data[i] = MorseCode::End; }
-  }
-}
-
-MorseLetter::MorseLetter(const char* input)
-{
-  for(std::size_t i = 0; i < LETTER_LENGTH; i++)
-  {
-    if(input[i] == '.')
-    { data[i] = MorseCode::Dot; }
-    else if(input[i] == '-')
-    { data[i] = MorseCode::Dash; }
-    else { data[i] = MorseCode::End; }
-  }
-}
-
-MorseLetter::MorseLetter(const char& input)
-{
-  const std::size_t index = charToIndex(input);
-  set(dictionary[index].translation);
-}
-
-
-
-void MorseLetter::set(const MorseLetter& input)
-{
-  for(std::size_t i = 0; i < LETTER_LENGTH; i++)
-  { data[i] = input.data[i]; }
-}
-
-bool MorseLetter::equals(const MorseLetter& b)
-{
-  for(std::size_t i = 0; i < LETTER_LENGTH; i++)
-  {
-    if(data[i] != b.data[i])
-    { return false; }
-
-    if(data[i] == MorseCode::End && b.data[i] == MorseCode::End)
-    { return true; }
-  }
-
-  return true;
-}
-
-
-
-void MorseLetter::printMorse()
-{
-  for(std::size_t i = 0; i < LETTER_LENGTH; i++)
-  {
-    if(data[i] == MorseCode::Dot)
-    {
-      printf(".");
-    } else if(data[i] == MorseCode::Dash)
-    {
-      printf("-");
-    } else if(data[i] == MorseCode::End)
-    {
-      return;
-    }
-  }
-}
-
-char MorseLetter::getLetter()
-{
-  for(dictionary_t test : dictionary)
-  {
-    if(equals(test.translation))
-    {
-      return test.letter;
-    }
-  }
-
-  return '?';
-}
-
-
-
 /*** Letter Conversion ***/
 std::size_t charToIndex(const char& input)
 {
@@ -101,7 +14,6 @@ std::size_t charToIndex(const char& input)
     return 0x1b + (input - '0');
   } else { return 0x00; }
 }
-
 
 
 /*** Letter Detection ***/
@@ -138,6 +50,21 @@ void clearArray(std::array<T, L>& array, const T value)
   { array[i] = value; }
 }
 
+char getAscii(const std::array<char, LETTER_LENGTH> input)
+{
+  for(dictionary_t item : dictionary)
+  {
+    for(std::size_t i = 0; i < LETTER_LENGTH; i++)
+    {
+      if(input[i] == ' ' && item.translation[i] == ' ')
+      { return item.letter; }
+      else if(input[i] != item.translation[i])
+      { break; }
+    }
+  }
+  return '?';
+}
+
 void morseToAscii(const char* input)
 {
   for(std::size_t i = 0; input[i] != '\0'; i++)
@@ -161,8 +88,8 @@ void morseToAscii(const char* input)
     case ' ':
       if(count != 0)
       {
-        printf("%c", MorseLetter(buffer).getLetter());
-        clearArray(buffer);
+        printf("%c", getAscii(buffer));
+        clearArray(buffer, ' ');
         count = 0;
       }
       break;
@@ -180,7 +107,7 @@ void morseToAscii(const char* input)
   }
 
   if(count != 0)
-  { printf("%c", MorseLetter(buffer).getLetter()); }
+  { printf("%c", getAscii(buffer)); }
 
   printf("\n");
 }
@@ -195,9 +122,16 @@ void asciiToMorse(const char* input)
     { printf("/ "); }
     else
     {
-      if(charToIndex(input[i]) != 0)
+      const std::size_t index = charToIndex(input[i]);
+      if(index != 0)
       {
-        MorseLetter(input[i]).printMorse();
+        for(std::size_t j = 0; j < LETTER_LENGTH; j++)
+        {
+          if(dictionary[index].translation[j] == ' ')
+          { break; }
+          printf("%c", dictionary[index].translation[j]);
+        }
+
         printf(" ");
       }
     }
